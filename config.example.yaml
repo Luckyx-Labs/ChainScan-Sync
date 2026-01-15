@@ -1,0 +1,80 @@
+# Samrt contract event relayer config example file
+# Copy this file to config.local.yaml and modify according to your actual situation
+
+# logging configuration
+log:
+  level: info          # log level: debug, info, warn, error
+  format: json         # log format: json, text
+  output: stdout       # output location: stdout, file
+  file_path: ./logs/relayer.log  # log file path (when output is file)
+
+# database configuration
+database:
+  enabled: true                    # whether to enable database
+  driver: postgres                 # database driver: postgres, postgresql
+  dsn: "host=localhost user=relayer password=yourpass dbname=contract_events port=5432 sslmode=disable" # main database (contract events)
+  dsn2: "host=localhost user=relayer password=yourpass dbname=contract_events port=5432 sslmode=disable" # secondary database (monitoring addresses)
+
+# API service configuration
+api:
+  enabled: true 
+  host: 0.0.0.0
+  port: 8080
+  auth_token: "your-secure-token-here"
+
+# ============ EVM chain configuration ============
+evm_chains:
+  # Ethereum mainnet example
+  - name: ethereum-mainnet
+    enabled: false     # whether to enable
+    chain_id: 1
+    rpc_url: https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY  # primary RPC endpoint
+    backup_rpc_urls:    # backup RPC endpoints
+      - https://base-sepolia.infura.io/v3/YOUR_PRIVATE_KEY
+    rate_limit: 30
+    start_block: latest  # starting block: latest, earliest, or specific block number
+    confirmations: 12    # confirmations
+    contracts:
+      # USDT contract example
+      - address: "0xdAC17F958D2ee523a2206206994597C13D831ec7" 
+        name: "USDT"
+        abi_path: "./abis/ERC20.json"
+        events:
+          - Transfer
+          - Approval
+      
+      # asset pool manager contract
+      - address: "0xbCD9271DE8524d65E68E680BbF6e80A994802027"  
+        name: "AssetPoolManager"
+        abi_path: "./abis/AssetPoolManager.json"
+        events:
+          - Deposit
+          - Withdraw
+          - ETHDeposit
+          - ETHWithdraw
+          - BatchPayinItem
+          - BatchPayoutItem
+
+
+# ============ Retry configuration ============
+retry:
+  max_attempts: 3           # Maximum retry attempts
+  initial_interval: 1s      # Initial retry interval
+  max_interval: 30s         # Maximum retry interval
+  multiplier: 2.0           # Multiplier for retry interval
+
+# ============ Performance configuration ============
+performance:
+  batch_size: 100           # Number of events processed in batch
+  worker_count: 4           # Number of worker goroutines
+  buffer_size: 1000         # Event buffer size
+  poll_interval: 3s         # Polling interval (non-WebSocket mode)
+
+
+# ============ Webhook configuration ============
+webhooks:
+  enabled: false
+  endpoints:
+    - url: "http://localhost:8080/webhook"
+      api_key: "your-webhook-api-key"
+      retry: true           # Whether to retry on failure

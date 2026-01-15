@@ -1,15 +1,53 @@
-# Remix compiler artifacts
-**/artifacts/
-**/artifacts/**
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Remix plugin state folders
-deps/
-states/
+# Test binary, built with `go test -c`
+*.test
 
-# Debug info
-*.dbg.json
-*.tsbuildinfo
+# Output of the go coverage tool
+*.out
 
-# Optional
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database
+data/
+*.db
+
+# Environment variables
 .env
 .env.local
+
+# Config overrides
+config.local.yaml
+config.prod.yaml
+
+# Build artifacts
+bin/
+dist/
+build/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+config.yaml
+
