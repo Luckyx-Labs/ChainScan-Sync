@@ -21,6 +21,12 @@ type Config struct {
 	Retry       RetryConfig       `mapstructure:"retry"`
 	Performance PerformanceConfig `mapstructure:"performance"`
 	Webhooks    WebhooksConfig    `mapstructure:"webhooks"`
+	WithdrawEOA WithdrawEOAConfig `mapstructure:"withdraw_eoa"`
+}
+
+// WithdrawEOAConfig withdraw EOA address configuration
+type WithdrawEOAConfig struct {
+	Address string `mapstructure:"address"`
 }
 
 // LogConfig log configuration

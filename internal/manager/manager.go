@@ -113,7 +113,7 @@ func (m *Manager) initializeListeners() error {
 			continue
 		}
 
-		listener, err := evm.NewEVMListener(chainCfg, m.config.Retry)
+		listener, err := evm.NewEVMListener(chainCfg, m.config.Retry, m.config.WithdrawEOA.Address)
 		if err != nil {
 			return fmt.Errorf("failed to create EVM listener (%s): %w", chainCfg.Name, err)
 		}
@@ -174,7 +174,7 @@ func (m *Manager) initializeAPIServer() error {
 // initializeNotifiers initializes notifiers
 func (m *Manager) initializeNotifiers() error {
 	if m.config.Webhooks.Enabled {
-		m.notifiers = append(m.notifiers, notifier.NewWebhookNotifier(m.config.Webhooks))
+		m.notifiers = append(m.notifiers, notifier.NewWebhookNotifier(m.config.Webhooks, m.config.WithdrawEOA.Address))
 		logger.Info("Webhook notifier initialized")
 	}
 

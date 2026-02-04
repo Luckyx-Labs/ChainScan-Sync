@@ -3,6 +3,7 @@ package evm
 import (
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	storage "github.com/Luckyx-Labs/chainscan-sync/internal/database"
@@ -127,6 +128,11 @@ func (l *EVMListener) getBlockReceiptsAndTxs(blockNumber uint64) (*BlockReceipts
 
 	for _, tx := range blockData.Transactions {
 		if tx != nil && tx.Hash != "" {
+			// Parse ValueHex to Value (big.Int)
+			if tx.ValueHex != "" {
+				tx.Value = new(big.Int)
+				tx.Value.SetString(tx.ValueHex[2:], 16) // Remove "0x" prefix and parse as hex
+			}
 			result.RawTxMap[tx.Hash] = tx
 		}
 	}
@@ -171,11 +177,12 @@ func (l *EVMListener) processNativeTransfersWithStandardRPC(blockNumber uint64, 
 		from := common.HexToAddress(tx.From)
 		to := common.HexToAddress(tx.To)
 
+		// fromMonitored := l.isAddressMonitored(from)
+		isWithdraw := l.withdrawEOA != "" && strings.EqualFold(from.Hex(), l.withdrawEOA)
 		// Check if it is related to monitored addresses
-		fromMonitored := l.isAddressMonitored(from)
 		toMonitored := l.isAddressMonitored(to)
 
-		if !fromMonitored && !toMonitored {
+		if !isWithdraw && !toMonitored {
 			continue
 		}
 
@@ -191,7 +198,7 @@ func (l *EVMListener) processNativeTransfersWithStandardRPC(blockNumber uint64, 
 		// Save to database
 		if err := l.saveNativeTransferFromAlchemy(
 			transfer, tx.Value, header, blockTime,
-			fromMonitored, toMonitored,
+			isWithdraw, toMonitored,
 		); err != nil {
 			logger.Errorf("Failed to save native transfer: %v", err)
 		}
@@ -210,7 +217,7 @@ func (l *EVMListener) saveNativeTransferFromAlchemy(
 	amount *big.Int,
 	header *types.Header,
 	blockTime time.Time,
-	fromMonitored, toMonitored bool,
+	isWithdraw, toMonitored bool,
 ) error {
 	pgStorage, ok := l.storage.(*storage.PostgresStorage)
 	if !ok {
@@ -236,8 +243,10 @@ func (l *EVMListener) saveNativeTransferFromAlchemy(
 		gasFee = new(big.Int).Mul(big.NewInt(int64(gasUsed)), header.BaseFee).String()
 	}
 
-	// If from is a monitored address → Withdraw
-	if fromMonitored {
+	// If from is the configured withdraw EOA address → Withdraw
+	// Changed from: fromMonitored (any monitored address)
+	// Changed to: only the configured withdraw_eoa address can trigger withdraw
+	if isWithdraw {
 		withdraw := &storage.Withdraw{
 			ChainType:     string(appTypes.ChainTypeEVM),
 			ChainName:     l.config.Name,

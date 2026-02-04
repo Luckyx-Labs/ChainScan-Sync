@@ -433,7 +433,7 @@ func TestProcessBlockTest(t *testing.T) {
 	}
 
 	// create EVM listener
-	listener, err := NewEVMListener(cfg, retryCfg)
+	listener, err := NewEVMListener(cfg, retryCfg, "")
 	if err != nil {
 		t.Fatalf("Failed to create listener: %v", err)
 	}

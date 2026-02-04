@@ -53,6 +53,7 @@ type EVMListener struct {
 	reorgMu              sync.Mutex               // Reorganization state lock
 	isReloadingAddresses bool                     // Whether addresses are being reloaded (used to pause new block scanning)
 	reloadMu             sync.Mutex               // Address reload lock
+	withdrawEOA          string                   // Withdraw EOA address from config
 }
 
 // ContractInfo Contract information
@@ -64,7 +65,7 @@ type ContractInfo struct {
 }
 
 // NewEVMListener creates a new EVMListener
-func NewEVMListener(cfg config.EVMChainConfig, retryCfg config.RetryConfig) (interfaces.ChainListener, error) {
+func NewEVMListener(cfg config.EVMChainConfig, retryCfg config.RetryConfig, withdrawEOA string) (interfaces.ChainListener, error) {
 	// Create contract address LRU cache
 	contractCache, err := lru.New[string, bool](ContractCacheSize)
 	if err != nil {
@@ -78,6 +79,7 @@ func NewEVMListener(cfg config.EVMChainConfig, retryCfg config.RetryConfig) (int
 		parser:        parser.NewEVMParser(),
 		errorChan:     make(chan error, 10),
 		contractCache: contractCache,
+		withdrawEOA:   strings.ToLower(withdrawEOA),
 		status: &appTypes.ProcessStatus{
 			ChainType: appTypes.ChainTypeEVM,
 			ChainName: cfg.Name,

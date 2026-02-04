@@ -23,17 +23,19 @@ import (
 
 // WebhookNotifier Webhook notifier
 type WebhookNotifier struct {
-	config     config.WebhooksConfig
-	httpClient *http.Client
-	name       string
-	storage    interfaces.Storage
-	mu         sync.RWMutex
+	config      config.WebhooksConfig
+	withdrawEOA string // withdraw EOA address from config
+	httpClient  *http.Client
+	name        string
+	storage     interfaces.Storage
+	mu          sync.RWMutex
 }
 
 // NewWebhookNotifier creates a new Webhook notifier
-func NewWebhookNotifier(cfg config.WebhooksConfig) interfaces.Notifier {
+func NewWebhookNotifier(cfg config.WebhooksConfig, withdrawEOA string) interfaces.Notifier {
 	return &WebhookNotifier{
-		config: cfg,
+		config:      cfg,
+		withdrawEOA: strings.ToLower(withdrawEOA),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 			Transport: &http.Transport{
@@ -142,17 +144,26 @@ func (n *WebhookNotifier) sendToEndpoint(ctx context.Context, endpoint config.We
 		case "ETHDeposit":
 			method_name = "ethDeposit"
 		case "Withdraw":
-			method_name = "withdraw"
+			method_name = "tokenWithdraw"
 		case "ETHWithdraw":
 			method_name = "ethWithdraw"
 		case "Transfer":
-			method_name = "transfer"
+			// Check if from address is the withdraw EOA address
+			if n.withdrawEOA != "" && strings.EqualFold(event.FromAddress, n.withdrawEOA) {
+				method_name = "withdraw"
+			} else {
+				method_name = "transfer"
+			}
 		case "BatchPayinItem":
 			method_name = "batchPayinItem"
 		case "BatchPayoutItem":
 			method_name = "batchPayoutItem"
 		case "NativeTransfer":
-			method_name = "nativeTransfer"
+			if n.withdrawEOA != "" && strings.EqualFold(event.FromAddress, n.withdrawEOA) {
+				method_name = "withdraw"
+			} else {
+				method_name = "nativeTransfer"
+			}
 		default:
 			// Unsupported event type, skip notification
 			logger.Debugf("Unsupported event type for notification: %s, skipping", event.EventName)

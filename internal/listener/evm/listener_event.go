@@ -754,12 +754,12 @@ func (l *EVMListener) handleBatchPayoutItemEvent(tx *types.Transaction, receipt 
 		return nil
 	}
 
-	// Extract recipient address from event data
+	// Extract recipient address from event data (field name: "to" according to Settlement ABI)
 	var recipientAddress string
-	if recipient, ok := event.EventData["recipient"].(common.Address); ok {
+	if recipient, ok := event.EventData["to"].(common.Address); ok {
 		recipientAddress = recipient.Hex()
 	} else {
-		logger.Warnf("BatchPayoutItem event missing recipient field")
+		logger.Warnf("BatchPayoutItem event missing 'to' field")
 		return nil
 	}
 
@@ -785,7 +785,7 @@ func (l *EVMListener) handleBatchPayoutItemEvent(tx *types.Transaction, receipt 
 
 	// Only record payouts for monitored addresses
 	if !l.isAddressMonitored(common.HexToAddress(recipientAddress)) {
-		logger.Debugf("Skip batch payout for non-monitored address: recipient=%s", recipientAddress)
+		logger.Debugf("Skip batch payout for non-monitored address: to=%s", recipientAddress)
 		return nil
 	}
 
@@ -806,13 +806,14 @@ func (l *EVMListener) handleBatchPayoutItemEvent(tx *types.Transaction, receipt 
 	}
 
 	// Save to withdraws table (batch payout is essentially a withdrawal operation)
+	// FromAddress is Settlement contract address (event source)
 	withdraw := &storage.Withdraw{
 		ChainType:     string(appTypes.ChainTypeEVM),
 		ChainName:     l.config.Name,
 		TxHash:        txHash,
 		BlockNumber:   blockNumber,
 		BlockHash:     blockInfo.Hash.Hex(),
-		FromAddress:   event.ContractAddr, // AssetPoolManager contract address (fund pool)
+		FromAddress:   event.ContractAddr, // Settlement contract address
 		ToAddress:     recipientAddress,   // Recipient address
 		TokenAddress:  tokenAddress,       // Token address
 		Amount:        amount,             // Transfer amount

@@ -42,9 +42,17 @@ evm_chains:
         events:
           - Transfer
           - Approval
-      
+
+      # USDC contract example
+      - address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" 
+        name: "USDC"
+        abi_path: "./abis/ERC20.json"
+        events:
+          - Transfer
+          - Approval
+
       # asset pool manager contract
-      - address: "0xbCD9271DE8524d65E68E680BbF6e80A994802027"  
+      - address: "0x08D9437CD856142f350A7b1EF6C794D24e2FD61D"
         name: "AssetPoolManager"
         abi_path: "./abis/AssetPoolManager.json"
         events:
@@ -53,8 +61,17 @@ evm_chains:
           - ETHDeposit
           - ETHWithdraw
           - BatchPayinItem
+      
+      # settlement contract
+      - address: "0x3B48b66548E2933C5C3d2ce71cCFac5c325f7ae3"  
+        name: "Settlement"
+        abi_path: "./abis/Settlement.json"
+        events:
           - BatchPayoutItem
 
+# ============ Withdrawal EOA configuration ============
+withdraw_eoa:
+  address: ""
 
 # ============ Retry configuration ============
 retry:

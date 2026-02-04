@@ -59,7 +59,7 @@ func TestWebhookNotifier_IntegrationTest(t *testing.T) {
 		},
 	}
 
-	notifier := NewWebhookNotifier(cfg)
+	notifier := NewWebhookNotifier(cfg, "")
 	ctx := context.Background()
 
 	// define test cases
@@ -175,7 +175,7 @@ func TestWebhookNotifier_BatchNotify_IntegrationTest(t *testing.T) {
 		},
 	}
 
-	notifier := NewWebhookNotifier(cfg)
+	notifier := NewWebhookNotifier(cfg, "")
 	ctx := context.Background()
 
 	// Create batch events (simulate multiple events in the same transaction)
@@ -278,7 +278,7 @@ func TestWebhookNotifier_ErrorHandling(t *testing.T) {
 				},
 			}
 
-			notifier := NewWebhookNotifier(cfg)
+			notifier := NewWebhookNotifier(cfg, "")
 			ctx := context.Background()
 
 			event := createDepositEvent(
