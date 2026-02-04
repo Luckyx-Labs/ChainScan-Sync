@@ -112,11 +112,11 @@ func (s *PostgresStorage) AutoMigrate() error {
 	}
 
 	// Create composite indexes
-	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_events_chain_processed ON events(chain_name, processed)")
-	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_events_contract_name ON events(contract_address, event_name)")
-	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_transactions_from_to ON transactions(from_address, to_address)")
-	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_transactions_block ON transactions(chain_name, block_number)")
-	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_balance_histories_address_time ON balance_histories(address, timestamp)")
+	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_events_chain_processed ON blockscan.events(chain_name, processed)")
+	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_events_contract_name ON blockscan.events(contract_address, event_name)")
+	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_transactions_from_to ON blockscan.transactions(from_address, to_address)")
+	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_transactions_block ON blockscan.transactions(chain_name, block_number)")
+	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_balance_histories_address_time ON blockscan.balance_histories(address, timestamp)")
 
 	// Confirmation count update optimization index (partial index, only indexes unconfirmed events)
 	s.db.Exec("CREATE INDEX IF NOT EXISTS idx_events_unfinalized ON blockscan.events(block_number) WHERE is_finalized = false")
